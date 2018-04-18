@@ -1,28 +1,38 @@
 package sofi.controllers;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+
+import sofi.services.MainService;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment=SpringBootTest.WebEnvironment.RANDOM_PORT)
+@WebMvcTest
 public class MainControllerTest {
-    @Autowired
-    private TestRestTemplate restTemplate;
+    @MockBean
+    private MainService service;
 
-    @LocalServerPort
-    private int port;
+    @Autowired
+    private MockMvc mockMvc;
 
     @Test
-    public void greetingShouldReturnDefaultMessage() throws Exception {
-        // Start the server on a random port to avoid conflicts, use Spring's test rest template, and make sure the endpoint works
-        assertThat(this.restTemplate.getForObject("http://localhost:" + port + "/", String.class))
-                .contains("Greetings from Spring Boot!");
+    public void shouldReturnHelloMessageFromService() throws Exception {
+        // Using Mockito, when the service is called return Hello Mock
+        when(service.hello()).thenReturn("Hello Mock");
+
+        // Now call the service, once again without a server, and make sure we get the mock response
+        this.mockMvc.perform(get("/")).andDo(print()).andExpect(status().isOk()).andExpect(content()
+                .string(containsString("Hello Mock")));
     }
 }
