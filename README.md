@@ -10,10 +10,8 @@ This project is being developed for training purposes.  The overall stack will i
     - Mockito
     - JUnit
     
-There will be basic examples included in the project to tie all of these pieces together.  This project includes the Database and 
-Kafka consumer pieces, the Producer and general website pieces are included in this 
-[Separate Project](https://github.com/SoWelch/Training-Spring-Boot-Consumer).  
-
+This project includes the Database and Kafka consumer pieces, the Producer and general website pieces are included in this 
+[Separate Project](https://github.com/SoWelch/Training-Spring-Boot).  
 
 ## How this was built
 
@@ -23,7 +21,10 @@ This was built using multiple tutorials:
         https://spring.io/guides/gs/spring-boot/  
             
     Setup of junit in project:  
-        https://spring.io/guides/gs/testing-web/  
+        https://spring.io/guides/gs/testing-web/
+        
+    Setup for Thymeleaf:
+        https://www.callicoder.com/spring-boot-maven-thymeleaf-tutorial/
       
 <br />
 
@@ -36,7 +37,7 @@ When running this app, you can check any problems or just get more info by openi
 <br />
 To start the app:
 
-    ./gradlew clean build ; java -jar build/libs/training-spring-boot-0.1.0.jar
+    ./gradlew clean build ; java -jar build/libs/training-spring-boot-consumer-0.1.0.jar
 
 <br />
 Using Swagger:
