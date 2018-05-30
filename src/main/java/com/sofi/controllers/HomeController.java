@@ -23,6 +23,7 @@ public class HomeController {
         model.addAttribute("title", "Training Consumer");
 
         service.getMachine();
+        service.listContainers();
 
         return "home";
     }

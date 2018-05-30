@@ -1,22 +1,32 @@
 package com.sofi.services;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Optional;
 
 @Service("DockerService")
 public class DockerService {
 
+    @Value("${docker.machine.name}")
     private String dockerName;
 
-    public DockerService(String dockerName) {
-        this.dockerName = dockerName;
+    @Value("${docker.training.location}")
+    private String dockerLocation;
+
+    @Value("${docker.container.names}")
+    private String[] containerNames;
+
+    public DockerService() {
     }
 
     public void getMachine() {
-        ArrayList<String> output = runCommand("docker-machine ls");
+        String[] cmd = {"/bin/sh", "-c", "docker-machine ls"};
+        ArrayList<String> output = runCommand(cmd);
 
         for(String line : output) {
             if (line.contains(dockerName) && line.contains("Running")) {
@@ -32,15 +42,48 @@ public class DockerService {
     }
 
     public void listContainers() {
-        System.out.println("Listing Containers");
+        String[] cmd = { "/bin/sh", "-c", "docker-compose ps"};
+        ArrayList<String> output = runCommand(cmd);
 
-        String command = "docker-machine ls";
-        ArrayList<String> output = runCommand(command);
+        ArrayList<String> containersRunning = new ArrayList<>();
+        ArrayList<String> projectContainers = new ArrayList<>(Arrays.asList(containerNames));
 
-        //System.out.println(output);
+        for (String cont : projectContainers) {
+            System.out.println(cont);
+        }
+
+        if (output.isEmpty()) {
+            System.out.println("No containers could be found. You probably need to run the 'eval $(docker-machine env training' " +
+                    "command in the terminal window running this program");
+            return;
+        }
+
+        // If the container is found, it's added to a list (to make sure each container is accounted for)
+        for (String line : output) {
+            for (String containerName : projectContainers) {
+                if (line.contains(containerName) && line.contains("Up")) {
+                    System.out.println(containerName + " is running!");
+                    containersRunning.add(containerName);
+                } else if (line.contains(containerName)) {
+                    System.out.println(containerName + " is NOT running!");
+                    containersRunning.add(containerName);
+                }
+            }
+        }
+
+        // Now we check to make sure all of the containers have been found
+        if (containersRunning.isEmpty()) {
+            System.out.println("There are no containers running.  You should run 'docker-compose up' in " + dockerLocation);
+        } else {
+            for (String container : projectContainers) {
+                if (!containersRunning.contains(container)) {
+                    System.out.println("The " + container + " is NOT running");
+                }
+            }
+        }
     }
 
-    private ArrayList<String> runCommand(String cmd) {
+    private ArrayList<String> runCommand(String[] cmd) {
         ArrayList<String> result = new ArrayList<>();
         String line;
         Process p;
@@ -51,7 +94,7 @@ public class DockerService {
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
-            while ((line = reader.readLine())!= null) {
+            while ((line = reader.readLine()) != null) {
                 result.add(line);
             }
         } catch (Exception e) {
