@@ -1,5 +1,7 @@
 package com.sofi.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,8 @@ public class DockerService {
     @Value("${docker.container.names}")
     private String[] containerNames;
 
+    private static Logger log = LoggerFactory.getLogger(DockerService.class);
+
     public DockerService() {
     }
 
@@ -30,15 +34,15 @@ public class DockerService {
 
         for(String line : output) {
             if (line.contains(dockerName) && line.contains("Running")) {
-                System.out.println("The " + dockerName + " docker machine is running!");
+                log.info("The {} docker machine is running!", dockerName);
                 return;
             } else if (line.contains(dockerName)) {
-                System.out.println("The " + dockerName + " docker machine is NOT running!");
+                log.warn("The {} docker machine is NOT running!", dockerName);
                 return;
             }
         }
 
-        System.out.println("The Docker Machine (" + dockerName + ") listed in your Application.conf could not be found");
+        log.warn("The Docker Machine (" + dockerName + ") listed in your Application.conf could not be found");
     }
 
     public void listContainers() {
@@ -48,12 +52,8 @@ public class DockerService {
         ArrayList<String> containersRunning = new ArrayList<>();
         ArrayList<String> projectContainers = new ArrayList<>(Arrays.asList(containerNames));
 
-        for (String cont : projectContainers) {
-            System.out.println(cont);
-        }
-
         if (output.isEmpty()) {
-            System.out.println("No containers could be found. You probably need to run the 'eval $(docker-machine env training' " +
+            log.warn("No containers could be found. You probably need to run the 'eval $(docker-machine env training' " +
                     "command in the terminal window running this program");
             return;
         }
@@ -62,10 +62,10 @@ public class DockerService {
         for (String line : output) {
             for (String containerName : projectContainers) {
                 if (line.contains(containerName) && line.contains("Up")) {
-                    System.out.println(containerName + " is running!");
+                    log.info("{} is running!", containerName);
                     containersRunning.add(containerName);
                 } else if (line.contains(containerName)) {
-                    System.out.println(containerName + " is NOT running!");
+                    log.warn("{} is NOT running!", containerName);
                     containersRunning.add(containerName);
                 }
             }
@@ -73,11 +73,11 @@ public class DockerService {
 
         // Now we check to make sure all of the containers have been found
         if (containersRunning.isEmpty()) {
-            System.out.println("There are no containers running.  You should run 'docker-compose up' in " + dockerLocation);
+            log.warn("There are no containers running.  You should run 'docker-compose up' in {}", dockerLocation);
         } else {
             for (String container : projectContainers) {
                 if (!containersRunning.contains(container)) {
-                    System.out.println("The " + container + " is NOT running");
+                    log.warn("The {} container is NOT running", container);
                 }
             }
         }
